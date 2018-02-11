@@ -2691,10 +2691,9 @@ bool RtApiJack :: callbackEvent( unsigned long nframes )
 // on information found in
 // http://www.cs.wustl.edu/~schmidt/win32-cv-1.html.
 
-#include "asiosys.h"
-#include "asio.h"
-#include "iasiothiscallresolver.h"
-#include "asiodrivers.h"
+#include "asio-helper.hpp"
+#include "asio-wrapper.hpp"
+
 #include <cmath>
 
 static AsioDrivers drivers;
