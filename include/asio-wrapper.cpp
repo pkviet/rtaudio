@@ -366,7 +366,7 @@ std::vector<AsioDriver> InstalledAsioDrivers()
 	DWORD index = 0, nameSize = 256, valueSize = 256;
 	LONG err;
 	TCHAR name[256], value[256];
-	CLSID *clsidvalue;
+	CLSID *clsidvalue = new CLSID;
 
 	printf("Querying installed ASIO drivers.\n");
 
