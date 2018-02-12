@@ -550,7 +550,7 @@ also https://forum.cockos.com/archive/index.php/t-109428.html */
 struct AsioDriver
 {
 	std::string name;
-	CLSID clsid;
+	std::string clsid;
 //	HRESULT open(IASIO **ppAsio);
 };
 

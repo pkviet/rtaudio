@@ -359,6 +359,15 @@ std::string GuidToString(GUID guid)
 	return std::string(guid_cstr);
 }
 
+
+GUID stringToGUID(const std::string& guid) {
+	GUID output;
+	const auto ret = sscanf(guid.c_str(), "{%8X-%4hX-%4hX-%2hX%2hX-%2hX%2hX%2hX%2hX%2hX%2hX}", &output.Data1, &output.Data2, &output.Data3, &output.Data4[0], &output.Data4[1], &output.Data4[2], &output.Data4[3], &output.Data4[4], &output.Data4[5], &output.Data4[6], &output.Data4[7]);
+	if (ret != 11)
+		throw std::logic_error("Unvalid GUID, format should be {00000000-0000-0000-0000-000000000000}");
+	return output;
+}
+
 std::vector<AsioDriver> InstalledAsioDrivers()
 {
 	std::vector<AsioDriver> result;
@@ -366,7 +375,7 @@ std::vector<AsioDriver> InstalledAsioDrivers()
 	DWORD index = 0, nameSize = 256, valueSize = 256;
 	LONG err;
 	TCHAR name[256], value[256];
-	CLSID *clsidvalue = new CLSID;
+
 
 	printf("Querying installed ASIO drivers.\n");
 
@@ -388,14 +397,14 @@ std::vector<AsioDriver> InstalledAsioDrivers()
 
 		if ((err = RegGetValue(
 			asio, name, TEXT("CLSID"), RRF_RT_REG_SZ,
-			nullptr, clsidvalue, &valueSize)) != ERROR_SUCCESS) {
+			nullptr, value, &valueSize)) != ERROR_SUCCESS) {
 
 			printf("Skipping key %s: Couldn't get CLSID, error %i",
 				TCHAR(name), err);
 			continue;
 		}
 
-		driver.clsid = *clsidvalue;
+		driver.clsid = (TCHAR)value;
 		valueSize = 256;
 
 		if (RegGetValue(
@@ -459,7 +468,8 @@ LONG AsioDriverList::asioOpenDriver(int drvID, LPVOID *asiodrv)
 {
 	AsioDriver driver;
 	std::vector<AsioDriver> DriverList = InstalledAsioDrivers();
-	long			res;
+	long res;
+	CLSID clsid;
 
 	if (drvID >= 0 && drvID < numdrv) {
 		driver = DriverList[drvID];
@@ -468,8 +478,9 @@ LONG AsioDriverList::asioOpenDriver(int drvID, LPVOID *asiodrv)
 		printf("Error, invalid driver index");
 		return DRVERR_DEVICE_NOT_FOUND;
 	}
-
-	res = CoCreateInstance(driver.clsid, 0, CLSCTX_INPROC_SERVER, driver.clsid, asiodrv);
+	// convert from string to clsid because we store in struct as string
+	clsid = stringToGUID(driver.clsid);
+	res = CoCreateInstance(clsid, 0, CLSCTX_INPROC_SERVER, clsid, asiodrv);
 	if (res == S_OK) {			
 		return 0;
 	}
@@ -549,7 +560,7 @@ LONG AsioDriverList::asioGetDriverCLSID(int drvID, CLSID *clsid)
 		return DRVERR_DEVICE_NOT_FOUND;
 	}
 
-	clsid = &(driver.clsid);
+	clsid = &stringToGUID(driver.clsid);
 	return DRVERR_DEVICE_NOT_FOUND;
 }
 
