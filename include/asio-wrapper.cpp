@@ -395,7 +395,7 @@ std::vector<AsioDriver> InstalledAsioDrivers()
 		nameSize = 256;
 		valueSize = 256;
 
-		if ((err = RegGetValue(
+		if ((err = RegGetValueA(
 			asio, name, TEXT("CLSID"), RRF_RT_REG_SZ,
 			nullptr, value, &valueSize)) != ERROR_SUCCESS) {
 
@@ -404,7 +404,7 @@ std::vector<AsioDriver> InstalledAsioDrivers()
 			continue;
 		}
 
-		driver.clsid = (TCHAR)value;
+		driver.clsid = (std::string)value;
 		valueSize = 256;
 
 		if (RegGetValue(
@@ -415,10 +415,10 @@ std::vector<AsioDriver> InstalledAsioDrivers()
 			// Observed with M-Audio drivers: the main (64bit) registration is
 			// fine but the Wow6432Node version is missing the description.
 			printf("Unable to get ASIO driver description, using key name instead.");
-			driver.name = TCHAR(name);
+			driver.name = (std::string)name;
 		}
 		else {
-			driver.name = TCHAR(value);
+			driver.name = (std::string)value;
 		}
 
 		printf("Found ASIO driver: %s with CLSID %s", driver.name, driver.clsid);
@@ -613,34 +613,60 @@ long AsioDrivers::getDriverNames(char **names, long maxDrivers)
 // see
 bool AsioDrivers::loadDriver(char *name)
 {
-	char *currentDriverName;
-	long i, ret;
-	std::vector<AsioDriver> DriverList = InstalledAsioDrivers();
+	//char *currentDriverName;
+	//long i, ret;
+	//std::vector<AsioDriver> DriverList = InstalledAsioDrivers();
 
 
-	for (i = 0; i < DriverList.size(); i++) {
-		if (strcmp(name, DriverList[i].name.c_str()) == 0) {
-			currentDriverName[0] = 0;
-			getCurrentDriverName(currentDriverName);
+	//for (i = 0; i < DriverList.size(); i++) {
+	//	if (strcmp(name, DriverList[i].name.c_str()) == 0) {
+	//		currentDriverName[0] = 0;
+	//		getCurrentDriverName(currentDriverName);
+	//		removeCurrentDriver();
+
+	//		ret = asioOpenDriver(i, (void **)&DriverPtr);
+	//		switch (ret) {
+	//		case DRVERR_DEVICE_ALREADY_OPEN:
+	//			curIndex = i;
+	//			return true;
+	//		case DRVERR_DEVICE_NOT_FOUND:
+	//			printf("Error: device not found; driver not loaded");
+	//			return false;
+	//		case 0:
+	//			DriverPtr = 0;
+	//			if (currentDriverName[0] && strcmp(DriverList[i].name.c_str(), currentDriverName)) {
+	//				loadDriver(currentDriverName);
+	//				return true;
+	//			}
+	//		}
+	//	}
+	//}
+	char dname[64];
+	char curName[64];
+
+	for (long i = 0; i < asioGetNumDev(); i++)
+	{
+		if (!asioGetDriverName(i, dname, 32) && !strcmp(name, dname))
+		{
+			curName[0] = 0;
+			getCurrentDriverName(curName);	// in case we fail...
 			removeCurrentDriver();
 
-			ret = asioOpenDriver(i, (void **)&DriverPtr);
-			switch (ret) {
-			case DRVERR_DEVICE_ALREADY_OPEN:
+			if (!asioOpenDriver(i, (void **)&DriverPtr))
+			{
 				curIndex = i;
 				return true;
-			case DRVERR_DEVICE_NOT_FOUND:
-				printf("Error: device not found; driver not loaded");
-				return false;
-			case 0:
-				DriverPtr = 0;
-				if (currentDriverName[0] && strcmp(DriverList[i].name.c_str(), currentDriverName)) {
-					loadDriver(currentDriverName);
-					return true;
-				}
 			}
+			else
+			{
+				DriverPtr = 0;
+				if (curName[0] && strcmp(dname, curName))
+					loadDriver(curName);	// try restore
+			}
+			break;
 		}
 	}
+	return false;
 }
 
 void AsioDrivers::removeCurrentDriver()
