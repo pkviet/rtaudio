@@ -2691,7 +2691,7 @@ bool RtApiJack :: callbackEvent( unsigned long nframes )
 // on information found in
 // http://www.cs.wustl.edu/~schmidt/win32-cv-1.html.
 
-#include "asio-helper.hpp"
+
 #include "asio-wrapper.hpp"
 
 #include <cmath>
@@ -2785,6 +2785,9 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
     error( RtAudioError::WARNING );
     return info;
   }
+  else {
+	  printf("the device name was correctly found as: %s\n", driverName);
+  }
 
   info.name = driverName;
 
@@ -2794,10 +2797,13 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
     error( RtAudioError::WARNING );
     return info;
   }
+  else {
+	  printf("the device was correctly loaded as: %s\n", driverName);
+  }
 
   result = ASIOInit( &driverInfo );
   if ( result != ASE_OK ) {
-    errorStream_ << "RtApiAsio::getDeviceInfo: error (" << getAsioErrorString( result ) << ") initializing driver (" << driverName << ").";
+    errorStream_ << "RtApiAsio::getDeviceInfo: error (" << getAsioErrorString( result ) << ") initializing driver (" << driverName << ").\n";
     errorText_ = errorStream_.str();
     error( RtAudioError::WARNING );
     return info;

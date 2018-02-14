@@ -87,32 +87,56 @@ int input( void * /*outputBuffer*/, void *inputBuffer, unsigned int nBufferFrame
   return 0;
 }
 
-int main( int argc, char *argv[] )
+int main( int argc/*, char *argv[]*/ )
 {
   unsigned int channels, fs, bufferFrames, device = 0, offset = 0;
   double time = 2.0;
   FILE *fd;
 
   // minimal command-line checking
-  if ( argc < 3 || argc > 6 ) usage();
+  // if ( argc < 3 || argc > 6 ) usage();
+
+  channels = 2;
+  fs = 48000;
+  time = (double)2;
+  device = (unsigned int)4;
+  offset = (unsigned int)0;
 
   RtAudio adc;
   if ( adc.getDeviceCount() < 1 ) {
     std::cout << "\nNo audio devices found!\n";
     exit( 1 );
   }
+  std::cout << "number of devices " << adc.getDeviceCount() << "\n";
 
-  channels = (unsigned int) atoi( argv[1] );
-  fs = (unsigned int) atoi( argv[2] );
-  if ( argc > 3 )
-    time = (double) atof( argv[3] );
-  if ( argc > 4 )
-    device = (unsigned int) atoi( argv[4] );
-  if ( argc > 5 )
-    offset = (unsigned int) atoi( argv[5] );
+  // Scan through devices for various capabilities
+  RtAudio::DeviceInfo info;
+  // Determine the number of devices available
+  unsigned int devices = adc.getDeviceCount();
+  for (unsigned int i = devices - 1; i>= 0; i--) {
+	  info = adc.getDeviceInfo(i);
+	  if (info.probed == true) {
+		  // Print, for example, the maximum number of output channels for each device
+		  std::cout << "device = " << i;
+		  std::cout << "\n maximum input channels = " << info.inputChannels << "\n";
+		  std::cout << " maximum output channels = " << info.outputChannels << "\n";
+		  std::cout << " preferred sample rate = " << info.preferredSampleRate << "\n";
+		  std::cout << " native formats (bitmask) = " << info.nativeFormats << "\n";
+		  std::cout << " preferred sample rate = " << info.preferredSampleRate << "\n";
+		  size_t size = info.sampleRates.size();
+		  for (i = 0; i < size; i++) {
+			  std::cout << " available sample rate = " << info.sampleRates[i] << "\n";
+		  }
+		  std::cout << "probed is = " << info.probed << "\n";
+	  }
+  }
+
+
 
   // Let RtAudio print messages to stderr.
   adc.showWarnings( true );
+
+  //show info on the devices
 
   // Set our stream parameters for input only.
   bufferFrames = 512;
