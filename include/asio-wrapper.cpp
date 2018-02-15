@@ -402,10 +402,26 @@ GUID stringToGUID(const std::string& guid) {
 	return output;
 }
 
+std::wstring CHARToWstring(const char *c) {
+	const size_t cSize = strlen(c) + 1;
+	std::wstring wc(cSize, L'#');
+	mbstowcs(&wc[0], c, cSize);
+
+	return wc;
+}
+
 std::string TCHARToUTF8(const TCHAR *ptr)
 {
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+#if !UNICODE
+	std::wstring wc = CHARToWstring(ptr);
+	return converter.to_bytes(wc);
+#else
 	return converter.to_bytes(ptr);
+#endif
+	
+	
+
 }
 
 std::wstring UTF8ToWide(const std::string& str)
