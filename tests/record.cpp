@@ -98,7 +98,7 @@ int main( int argc/*, char *argv[]*/ )
 
   channels = 2;
   fs = 48000;
-  time = (double)2;
+  time = (double)10;
   device = (unsigned int)4;
   offset = (unsigned int)0;
 
@@ -113,7 +113,7 @@ int main( int argc/*, char *argv[]*/ )
   RtAudio::DeviceInfo info;
   // Determine the number of devices available
   unsigned int devices = adc.getDeviceCount();
-  for (unsigned int i = devices - 1; i>= 0; i--) {
+  for (unsigned int i = 0; i< devices; i++) {
 	  info = adc.getDeviceInfo(i);
 	  if (info.probed == true) {
 		  // Print, for example, the maximum number of output channels for each device

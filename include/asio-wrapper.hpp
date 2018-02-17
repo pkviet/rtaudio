@@ -249,7 +249,7 @@ typedef struct ASIOChannelInfo
 	ASIOSampleType type; /* https://github.com/nikkov/Win-Widget/blob/master/Driver/asiouac2.cpp#ln553 
 	 and from https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln2412 we know the type is ASIOSampleType 
 	 as well as from ln 405 BytesPerAsioSample function called at line 1655 */
-	char *name; /* https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln4161 ; 
+	char name[32]; /* https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln4161 ; 
 	array size from https://github.com/SjB/NAudio/blob/master/NAudio/Wave/Asio/ASIOStructures.cs#ln107 */
 } ASIOChannelInfo;
 
@@ -400,8 +400,8 @@ typedef struct ASIODriverInfo
 {
 	long asioVersion;		// The asio version. Should always be 2.
 	long driverVersion;		// The driver version (format is driver specific)
-	char *name;   // The driver´s name (seems limited to 32 chars)
-	char *errorMessage; //The user message of an error that occured during ASIOInit() if any
+	char name[32];   // The driver´s name (seems limited to 32 chars)
+	char errorMessage[256]; //The user message of an error that occured during ASIOInit() if any
 	void *sysRef;			/* The sysRef. On windows systems this should be the application´s main window handle. Returns the main application window handle (on windows) or 0. */
 
 } ASIODriverInfo;
@@ -551,6 +551,7 @@ struct AsioDriver
 {
 	std::string name;
 	std::string clsid;
+	LPVOID     Device;
 //	HRESULT open(IASIO **ppAsio);
 };
 
@@ -564,7 +565,7 @@ public:
 	~AsioDriverList();
 
 	LONG asioOpenDriver(int, VOID **); // http://www.fmod.org/questions/question/forum-13594/
-	LONG asioCloseDriver(int, VOID **); // arg is driver index
+	LONG asioCloseDriver(int); // arg is driver index
 	LONG asioGetNumDev(VOID); /* https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#1252
 							  type inferred from http://lakeofsoft.com/vc/doc/unaASIOAPI.unaAsioDriverList.html and
 							  https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln1173 + ln 1252

@@ -2808,6 +2808,9 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
     error( RtAudioError::WARNING );
     return info;
   }
+  else {
+	  printf("the device was correctly initialized as: %s\n", driverName);
+  }
 
   // Determine the device channel information.
   long inputChannels, outputChannels;
@@ -2818,6 +2821,9 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
     errorText_ = errorStream_.str();
     error( RtAudioError::WARNING );
     return info;
+  }
+  else {
+	  printf("the device has %i inputs and %i output\n", inputChannels, outputChannels);
   }
 
   info.outputChannels = outputChannels;
@@ -2831,7 +2837,7 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
     result = ASIOCanSampleRate( (ASIOSampleRate) SAMPLE_RATES[i] );
     if ( result == ASE_OK ) {
       info.sampleRates.push_back( SAMPLE_RATES[i] );
-
+	  printf("device %s supports sample rate: %i\n", driverName, SAMPLE_RATES[i]);
       if ( !info.preferredSampleRate || ( SAMPLE_RATES[i] <= 48000 && SAMPLE_RATES[i] > info.preferredSampleRate ) )
         info.preferredSampleRate = SAMPLE_RATES[i];
     }
