@@ -109,7 +109,10 @@
  *		components of a computer system, including those of different
  *		manufacturers, so that they can work together.
  */
+//see https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/iasiothiscallresolver.hpp#ln127
 
+#ifndef __ASIO_H
+#define __ASIO_H
 
 /* https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/iasiothiscallresolver.cpp
  */
@@ -181,7 +184,7 @@ enum
 /* from https://github.com/SjB/NAudio/blob/master/NAudio/Wave/Asio/ASIOStructures.cs#ln125
  * also https://github.com/eiz/SynchronousAudioRouter/blob/master/SarAsio/tinyasio.h#ln37
  */
-typedef enum ASIOMessageSelector;
+enum ASIOMessageSelector;
 enum 
     {
         kAsioSelectorSupported = 1,	// selector in <value>, returns 1L if supported,
@@ -267,7 +270,7 @@ typedef struct ASIOBufferInfo
 
 // https://github.com/SjB/NAudio/blob/master/NAudio/Wave/Asio/ASIOStructures.cs#ln168
 // also http://jsasio.sourceforge.net/com/groovemanager/spi/asio/ASIOTimeCode.html
-typedef enum ASIOTimeCodeFlags;
+enum ASIOTimeCodeFlags;
  enum   {
         kTcValid = 1,
         kTcRunning = 1 << 1,
@@ -294,7 +297,7 @@ typedef struct ASIOTimeCode
 } ASIOTimeCode;
 
 // https://github.com/SjB/NAudio/blob/master/NAudio/Wave/Asio/ASIOStructures.cs#ln191
-typedef enum AsioTimeInfoFlags;
+enum AsioTimeInfoFlags;
 enum
     {
         kSystemTimeValid = 1,            // must always be valid
@@ -598,3 +601,4 @@ public:
 	long getCurrentDriverIndex() { return curIndex; } // https://github.com/mhroth/jasiohost/blob/master/src/com/synthbot/jasiohost/JAsioHost.cpp#ln314
 	long curIndex;
 };
+#endif

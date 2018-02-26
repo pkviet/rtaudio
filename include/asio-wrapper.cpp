@@ -329,6 +329,7 @@ ASIOError ASIOSetClockSource(long clock)
 ASIOError ASIOCreateBuffers(ASIOBufferInfo *bufInfo, long channels,	long bufSize, ASIOCallbacks *cb)
 {
 	int i;
+	ASIOError err;
 	if (!DriverPtr) {
 		printf("ASIO Error: Hardware not available.\n");
 		ASIOBufferInfo *info = bufInfo;
@@ -339,7 +340,10 @@ ASIOError ASIOCreateBuffers(ASIOBufferInfo *bufInfo, long channels,	long bufSize
 		}
 		return ASE_NotPresent;
 	}
-	return DriverPtr->createBuffers(bufInfo, channels, bufSize, cb);
+
+	err = DriverPtr->createBuffers(bufInfo, channels, bufSize, cb); 
+
+	return err;
 }
 
 ASIOError ASIODisposeBuffers(void)
@@ -373,7 +377,7 @@ std::string GuidToString(GUID guid)
 GUID stringToGUID(const std::string& guid) {
 	GUID output;
 	const auto ret = sscanf(guid.c_str(), 
-		"{%8X-%4hX-%4hX-%2hX%2hX-%2hX%2hX%2hX%2hX%2hX%2hX}",
+		"{%8X-%4hX-%4hX-%hhX%hhX-%hhX%hhX%hhX%hhX%hhX%hhX}",
 		&output.Data1, &output.Data2, &output.Data3, &output.Data4[0], 
 		&output.Data4[1], &output.Data4[2], &output.Data4[3], &output.Data4[4], 
 		&output.Data4[5], &output.Data4[6], &output.Data4[7]);
@@ -562,9 +566,8 @@ LONG AsioDriverList::asioOpenDriver(int drvID, LPVOID *asiodrv)
 
 LONG AsioDriverList::asioCloseDriver(int drvID)
 {
-	IASIO			*iasio;
+	IASIO	   *iasio;
 	AsioDriver driver;
-	long			rc;
 
 	if (drvID >= 0 && drvID < numdrv) {
 		driver = theDrivers[drvID];
@@ -721,6 +724,7 @@ bool AsioDrivers::loadDriver(char *name)
 			}
 		}
 	}
+	return false;
 }
 
 void AsioDrivers::removeCurrentDriver()

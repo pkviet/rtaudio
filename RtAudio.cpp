@@ -2693,6 +2693,7 @@ bool RtApiJack :: callbackEvent( unsigned long nframes )
 
 
 #include "asio-wrapper.hpp"
+#include "iasiothiscallresolver.h"
 
 #include <cmath>
 
@@ -2734,7 +2735,7 @@ RtApiAsio :: RtApiAsio()
   driverInfo.asioVersion = 2;
 
   // See note in DirectSound implementation about GetDesktopWindow().
-  driverInfo.sysRef = GetForegroundWindow();
+  driverInfo.sysRef = GetDesktopWindow();// GetForegroundWindow();
 }
 
 RtApiAsio :: ~RtApiAsio()
@@ -3129,10 +3130,14 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
   // Create the ASIO internal buffers.  Since RtAudio sets up input
   // and output separately, we'll have to dispose of previously
   // created output buffers for a duplex stream.
-  if ( mode == INPUT && stream_.mode == OUTPUT ) {
-    ASIODisposeBuffers();
-    if ( handle->bufferInfos ) free( handle->bufferInfos );
-  }
+ // if ( mode == INPUT && stream_.mode == OUTPUT ) {
+   ASIOError err = ASIODisposeBuffers();
+   if (err != ASE_OK)
+	   printf("Dispose buffer error message %i", err);
+   if (err == ASE_OK)
+	   printf("Disposed buffer OK");
+   if ( handle->bufferInfos ) free( handle->bufferInfos );
+ // }
 
   // Allocate, initialize, and save the bufferInfos in our stream callbackInfo structure.
   unsigned int i;
@@ -3639,7 +3644,7 @@ static long asioMessages( long selector, long value, void* /*message*/, double* 
     // Return the supported ASIO version of the host application.  If
     // a host application does not implement this selector, ASIO 1.0
     // is assumed by the driver.
-    ret = 2L;
+    ret = 1L;
     break;
   case kAsioSupportsTimeInfo:
     // Informs the driver whether the

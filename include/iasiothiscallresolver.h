@@ -135,7 +135,8 @@
 #endif
 
 #include <windows.h>
-#include "iasiodrv.h" /* From ASIO SDK */
+// not necessary with openASIO SDK
+// #include "iasiodrv.h" /* From ASIO SDK */
 
 
 class IASIOThiscallResolver : public IASIO {

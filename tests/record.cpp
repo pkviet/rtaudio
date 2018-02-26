@@ -21,7 +21,7 @@ typedef char MY_TYPE;
 */
 
 typedef signed short MY_TYPE;
-#define FORMAT RTAUDIO_SINT16
+#define FORMAT RTAUDIO_SINT24
 
 /*
 typedef S24 MY_TYPE;
@@ -90,16 +90,17 @@ int input( void * /*outputBuffer*/, void *inputBuffer, unsigned int nBufferFrame
 int main( int argc/*, char *argv[]*/ )
 {
   unsigned int channels, fs, bufferFrames, device = 0, offset = 0;
+  unsigned int i, j;
   double time = 2.0;
   FILE *fd;
 
   // minimal command-line checking
   // if ( argc < 3 || argc > 6 ) usage();
 
-  channels = 2;
+  channels = 4;
   fs = 48000;
   time = (double)10;
-  device = (unsigned int)4;
+  device = (unsigned int)1;
   offset = (unsigned int)0;
 
   RtAudio adc;
@@ -112,8 +113,8 @@ int main( int argc/*, char *argv[]*/ )
   // Scan through devices for various capabilities
   RtAudio::DeviceInfo info;
   // Determine the number of devices available
-  unsigned int devices = adc.getDeviceCount();
-  for (unsigned int i = 0; i< devices; i++) {
+  unsigned int nb_devices = adc.getDeviceCount();
+  for (i = 0;  i < nb_devices; i++) {
 	  info = adc.getDeviceInfo(i);
 	  if (info.probed == true) {
 		  // Print, for example, the maximum number of output channels for each device
@@ -124,8 +125,8 @@ int main( int argc/*, char *argv[]*/ )
 		  std::cout << " native formats (bitmask) = " << info.nativeFormats << "\n";
 		  std::cout << " preferred sample rate = " << info.preferredSampleRate << "\n";
 		  size_t size = info.sampleRates.size();
-		  for (i = 0; i < size; i++) {
-			  std::cout << " available sample rate = " << info.sampleRates[i] << "\n";
+		  for (j = 0; j < size; j++) {
+			  std::cout << " available sample rate = " << info.sampleRates[j] << "\n";
 		  }
 		  std::cout << "probed is = " << info.probed << "\n";
 	  }
