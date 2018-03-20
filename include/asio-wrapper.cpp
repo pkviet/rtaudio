@@ -129,60 +129,61 @@
 //using namespace std;
 
 IASIO *DriverPtr = 0; // is global unfortunately
+IASIO *DriverVect[8];
 AsioDrivers *asioDrivers = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////
 // main functions: start stop exit init
 ///////////////////////////////////////////////////////////////////////////////
 
-ASIOError ASIOStart(void)
+ASIOError ASIOStart(int index)
 {
-	if (!DriverPtr) {
+	if (!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		return ASE_NotPresent;
 	}
-	return DriverPtr->start();
+	return DriverVect[index]->start();
 }
 
-ASIOError ASIOStop(void)
+ASIOError ASIOStop(int index)
 {
-	if(!DriverPtr) {
+	if(!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		return ASE_NotPresent;
 	}
-	return DriverPtr->stop();
+	return DriverVect[index]->stop();
 }
 
-ASIOError ASIOExit(void)
+ASIOError ASIOExit(int index)
 {
-	if (DriverPtr) {
+	if (DriverVect[index]) {
 		asioDrivers->removeCurrentDriver();
 	}		
-	DriverPtr = 0;
+	DriverVect[index] = 0;
 	return ASE_OK;
 }
 
-ASIOError ASIOOutputReady(void)
+ASIOError ASIOOutputReady(int index)
 {
-	if (!DriverPtr) {
+	if (!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		return ASE_NotPresent;
 	}
-	return DriverPtr->outputReady();
+	return DriverVect[index]->outputReady();
 }
 
-ASIOError ASIOInit(ASIODriverInfo *info)
+ASIOError ASIOInit(int index, ASIODriverInfo *info)
 {
 	info->driverVersion = 0;
 	strcpy(info->name," Unset ");
-	if(DriverPtr && (!DriverPtr->init(info->sysRef)))	{
-		DriverPtr = 0;
+	if(DriverVect[index] && (!DriverVect[index]->init(info->sysRef)))	{
+		DriverVect[index] = 0;
 		printf("ASIO Error: Could not initialize driver.\n");
 		return ASE_NotPresent;
 	}		
-	if (DriverPtr) {
-		DriverPtr->getDriverName(info->name);
-		info->driverVersion = DriverPtr->getDriverVersion();
+	if (DriverVect[index]) {
+		DriverVect[index]->getDriverName(info->name);
+		info->driverVersion = DriverVect[index]->getDriverVersion();
 		strcpy(info->errorMessage,"No error with the driver (yet)\n");
 		printf("ASIO: driver init OK!\n");
 		return ASE_OK;
@@ -193,39 +194,39 @@ ASIOError ASIOInit(ASIODriverInfo *info)
 ///////////////////////////////////////////////////////////////////////////////
 // Misc functions
 ///////////////////////////////////////////////////////////////////////////////
-ASIOError ASIOControlPanel(void)
+ASIOError ASIOControlPanel(int index)
 {
-	if(!DriverPtr) {
+	if(!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		return ASE_NotPresent;
 	}
-	return DriverPtr->controlPanel();
+	return DriverVect[index]->controlPanel();
 }
 
-ASIOError ASIOFuture(long selector, void *option)
+ASIOError ASIOFuture(int index, long selector, void *option)
 {
-	if(!DriverPtr) {
+	if(!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		return ASE_NotPresent;
 	}
-	return DriverPtr->future(selector, option);
+	return DriverVect[index]->future(selector, option);
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Get driver settings : sample rate , 
 ///////////////////////////////////////////////////////////////////////////////
 
-ASIOError ASIOGetSampleRate(ASIOSampleRate *rate)
+ASIOError ASIOGetSampleRate(int index, ASIOSampleRate *rate)
 {
-	if(!DriverPtr) {
+	if(!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		return ASE_NotPresent;
 	}
-	return DriverPtr->getSampleRate(rate);
+	return DriverVect[index]->getSampleRate(rate);
 }
 
-ASIOError ASIOGetBufferSize(long *min, long *max, long *pref, long *granularity)
+ASIOError ASIOGetBufferSize(int index, long *min, long *max, long *pref, long *granularity)
 {
-	if(!DriverPtr) {
+	if(!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		*min = 0;
 		*max = 0;
@@ -233,104 +234,104 @@ ASIOError ASIOGetBufferSize(long *min, long *max, long *pref, long *granularity)
 		*granularity = 0;
 		return ASE_NotPresent;
 	}
-	return DriverPtr->getBufferSize(min, max, pref, granularity);
+	return DriverVect[index]->getBufferSize(min, max, pref, granularity);
 }
 
-ASIOError ASIOGetClockSources(ASIOClockSource *clock, long *sources)
+ASIOError ASIOGetClockSources(int index, ASIOClockSource *clock, long *sources)
 {
-	if(!DriverPtr) {
+	if(!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		*sources = 0;
 		return ASE_NotPresent;
 	}
-	return DriverPtr->getClockSources(clock, sources);
+	return DriverVect[index]->getClockSources(clock, sources);
 }
 
 // retrieves info on the number of channels (input and output)
-ASIOError ASIOGetChannels(long *inChannels, long *outChannels)
+ASIOError ASIOGetChannels(int index, long *inChannels, long *outChannels)
 {
-	if (!DriverPtr) {
+	if (!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		*inChannels = 0;
 		*outChannels = 0;
 		return ASE_NotPresent;
 	}
-	return DriverPtr->getChannels(inChannels, outChannels);
+	return DriverVect[index]->getChannels(inChannels, outChannels);
 }
 
 // retrieves info on a channel (bitdepth, name ...)
-ASIOError ASIOGetChannelInfo(ASIOChannelInfo *channelInfo)
+ASIOError ASIOGetChannelInfo(int index, ASIOChannelInfo *channelInfo)
 {
-	if (!DriverPtr) {
+	if (!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		channelInfo->channelGroup = -1;
 		strcpy(channelInfo->name," ");
 		channelInfo->type = ASIOSTFloat32LSB;
 		return ASE_NotPresent;
 	}
-	return DriverPtr->getChannelInfo(channelInfo);
+	return DriverVect[index]->getChannelInfo(channelInfo);
 }
 
-ASIOError ASIOGetLatencies(long *in, long *out)
+ASIOError ASIOGetLatencies(int index, long *in, long *out)
 {
-	if (!DriverPtr) {
+	if (!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		*in = 0;
 		*out = 0;
 		return ASE_NotPresent;
 	}
-	return DriverPtr->getLatencies(in, out);
+	return DriverVect[index]->getLatencies(in, out);
 }
 
-ASIOError ASIOGetSamplePosition(ASIOSamples *samplePosition, ASIOTimeStamp *timeStamp)
+ASIOError ASIOGetSamplePosition(int index, ASIOSamples *samplePosition, ASIOTimeStamp *timeStamp)
 {
-	if (!DriverPtr) {
+	if (!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		return ASE_NotPresent;
 	}
-	return DriverPtr->getSamplePosition(samplePosition, timeStamp);
+	return DriverVect[index]->getSamplePosition(samplePosition, timeStamp);
 }
 
 
-ASIOError ASIOCanSampleRate(ASIOSampleRate rate)
+ASIOError ASIOCanSampleRate(int index, ASIOSampleRate rate)
 {
-	if (!DriverPtr) {
+	if (!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		return ASE_NotPresent;
 	}
-	return DriverPtr->canSampleRate(rate);
+	return DriverVect[index]->canSampleRate(rate);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Set driver settings : sample rate , clock source
 ///////////////////////////////////////////////////////////////////////////////
 
-ASIOError ASIOSetSampleRate(ASIOSampleRate rate)
+ASIOError ASIOSetSampleRate(int index, ASIOSampleRate rate)
 {
-	if (!DriverPtr) {
+	if (!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		return ASE_NotPresent;
 	}
-	return DriverPtr->setSampleRate(rate);
+	return DriverVect[index]->setSampleRate(rate);
 }
 
-ASIOError ASIOSetClockSource(long clock)
+ASIOError ASIOSetClockSource(int index, long clock)
 {
-	if(!DriverPtr) {
+	if(!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		return ASE_NotPresent;
 	}
-	return DriverPtr->setClockSource(clock);
+	return DriverVect[index]->setClockSource(clock);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Buffer functions
 ///////////////////////////////////////////////////////////////////////////////
-ASIOError ASIOCreateBuffers(ASIOBufferInfo *bufInfo, long channels,	long bufSize, ASIOCallbacks *cb)
+ASIOError ASIOCreateBuffers(int index, ASIOBufferInfo *bufInfo, long channels,	long bufSize, ASIOCallbacks *cb)
 {
 	int i;
 	ASIOError err;
-	if (!DriverPtr) {
+	if (!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		ASIOBufferInfo *info = bufInfo;
 		for (i = 0; i < channels; i++) {
@@ -341,18 +342,18 @@ ASIOError ASIOCreateBuffers(ASIOBufferInfo *bufInfo, long channels,	long bufSize
 		return ASE_NotPresent;
 	}
 
-	err = DriverPtr->createBuffers(bufInfo, channels, bufSize, cb); 
+	err = DriverVect[index]->createBuffers(bufInfo, channels, bufSize, cb); 
 
 	return err;
 }
 
-ASIOError ASIODisposeBuffers(void)
+ASIOError ASIODisposeBuffers(int index)
 {
-	if (!DriverPtr) {
+	if (!DriverVect[index]) {
 		printf("ASIO Error: Hardware not available.\n");
 		return ASE_NotPresent;
 	}
-	return DriverPtr->disposeBuffers();
+	return DriverVect[index]->disposeBuffers();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -549,7 +550,7 @@ LONG AsioDriverList::asioOpenDriver(int drvID, LPVOID *asiodrv)
 		if (res == S_OK) {
 			printf("ASIO Info: Driver successfully opened\n");
 			theDrivers[drvID].Device = *asiodrv;
-			DriverPtr = (IASIO *)theDrivers[drvID].Device;
+			DriverVect[drvID] = (IASIO *)theDrivers[drvID].Device;
 			return 0;
 		}
 		else {
@@ -668,10 +669,10 @@ AsioDrivers::~AsioDrivers()
 {
 }
 
-bool AsioDrivers::getCurrentDriverName(char *name)
+bool AsioDrivers::getCurrentDriverName(int index, char *name)
 {
-	if (curIndex >= 0 && curIndex < asioGetNumDev()) {
-		return asioGetDriverName(curIndex, name, 32) == 0 ? true : false;
+	if (index >= 0 && index < asioGetNumDev()) {
+		return asioGetDriverName(index, name, 32) == 0 ? true : false;
 	}
 	*name = 0;
 	return false;
@@ -704,10 +705,10 @@ bool AsioDrivers::loadDriver(char *name)
 	for (i = 0; i < theDrivers.size(); i++) {
 		if (strcmp(name, theDrivers[i].name.c_str()) == 0) {
 			currentDriverName[0] = 0;
-			getCurrentDriverName(currentDriverName);
+			getCurrentDriverName(i, currentDriverName);
 			removeCurrentDriver();
 
-			ret = asioOpenDriver(i, (void **)&DriverPtr);
+			ret = asioOpenDriver(i, (void **)&DriverVect[i]);
 			switch (ret) {
 			case 0:
 				curIndex = i;
@@ -716,7 +717,7 @@ bool AsioDrivers::loadDriver(char *name)
 				printf("ASIO Error: device not found; driver not loaded");
 				return false;
 			case DRVERR_DEVICE_ALREADY_OPEN:
-				DriverPtr = 0;
+				DriverVect[i] = 0;
 				if (currentDriverName[0] && strcmp(theDrivers[i].name.c_str(), currentDriverName)) {
 					loadDriver(currentDriverName);
 				}

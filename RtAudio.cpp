@@ -2697,7 +2697,7 @@ bool RtApiJack :: callbackEvent( unsigned long nframes )
 
 #include <cmath>
 
-static AsioDrivers drivers;
+AsioDrivers drivers[8];
 static ASIOCallbacks asioCallbacks;
 static ASIODriverInfo driverInfo;
 static CallbackInfo *asioCallbackInfo;
@@ -2731,7 +2731,7 @@ RtApiAsio :: RtApiAsio()
   }
   coInitialized_ = true;
 
-  drivers.removeCurrentDriver();
+//  drivers.removeCurrentDriver();
   driverInfo.asioVersion = 2;
 
   // See note in DirectSound implementation about GetDesktopWindow().
@@ -2746,7 +2746,7 @@ RtApiAsio :: ~RtApiAsio()
 
 unsigned int RtApiAsio :: getDeviceCount( void )
 {
-  return (unsigned int) drivers.asioGetNumDev();
+  return (unsigned int) drivers[0].asioGetNumDev();
 }
 
 RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
@@ -2779,7 +2779,8 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
   }
 
   char driverName[32];
-  ASIOError result = drivers.asioGetDriverName( (int) device, driverName, 32 );
+  // will need to add a check on the device index which must be less than 16
+  ASIOError result = drivers[device].asioGetDriverName( (int) device, driverName, 32 );
   if ( result != ASE_OK ) {
     errorStream_ << "RtApiAsio::getDeviceInfo: unable to get driver name (" << getAsioErrorString( result ) << ").";
     errorText_ = errorStream_.str();
@@ -2792,7 +2793,7 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
 
   info.name = driverName;
 
-  if ( !drivers.loadDriver( driverName ) ) {
+  if ( !drivers[device].loadDriver( driverName ) ) {
     errorStream_ << "RtApiAsio::getDeviceInfo: unable to load driver (" << driverName << ").";
     errorText_ = errorStream_.str();
     error( RtAudioError::WARNING );
@@ -2802,7 +2803,7 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
 	  printf("the device was correctly loaded as: %s\n", driverName);
   }
 
-  result = ASIOInit( &driverInfo );
+  result = ASIOInit(device, &driverInfo );
   if ( result != ASE_OK ) {
     errorStream_ << "RtApiAsio::getDeviceInfo: error (" << getAsioErrorString( result ) << ") initializing driver (" << driverName << ").\n";
     errorText_ = errorStream_.str();
@@ -2815,9 +2816,9 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
 
   // Determine the device channel information.
   long inputChannels, outputChannels;
-  result = ASIOGetChannels( &inputChannels, &outputChannels );
+  result = ASIOGetChannels(device, &inputChannels, &outputChannels );
   if ( result != ASE_OK ) {
-    drivers.removeCurrentDriver();
+    drivers[device].removeCurrentDriver();
     errorStream_ << "RtApiAsio::getDeviceInfo: error (" << getAsioErrorString( result ) << ") getting channel count (" << driverName << ").";
     errorText_ = errorStream_.str();
     error( RtAudioError::WARNING );
@@ -2835,7 +2836,7 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
   // Determine the supported sample rates.
   info.sampleRates.clear();
   for ( unsigned int i=0; i<MAX_SAMPLE_RATES; i++ ) {
-    result = ASIOCanSampleRate( (ASIOSampleRate) SAMPLE_RATES[i] );
+    result = ASIOCanSampleRate(device, (ASIOSampleRate) SAMPLE_RATES[i] );
     if ( result == ASE_OK ) {
       info.sampleRates.push_back( SAMPLE_RATES[i] );
 	  printf("device %s supports sample rate: %i\n", driverName, SAMPLE_RATES[i]);
@@ -2849,9 +2850,9 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
   channelInfo.channel = 0;
   channelInfo.isInput = true;
   if ( info.inputChannels <= 0 ) channelInfo.isInput = false;
-  result = ASIOGetChannelInfo( &channelInfo );
+  result = ASIOGetChannelInfo(device, &channelInfo );
   if ( result != ASE_OK ) {
-    drivers.removeCurrentDriver();
+    drivers[device].removeCurrentDriver();
     errorStream_ << "RtApiAsio::getDeviceInfo: error (" << getAsioErrorString( result ) << ") getting driver channel info (" << driverName << ").";
     errorText_ = errorStream_.str();
     error( RtAudioError::WARNING );
@@ -2876,16 +2877,51 @@ RtAudio::DeviceInfo RtApiAsio :: getDeviceInfo( unsigned int device )
     if ( getDefaultInputDevice() == device ) info.isDefaultInput = true;
 
   info.probed = true;
-  drivers.removeCurrentDriver();
+  drivers[device].removeCurrentDriver();
   return info;
 }
 
-static void bufferSwitch( long index, ASIOBool /*processNow*/ )
+static void bufferSwitch0( long index, ASIOBool /*processNow*/ )
 {
   RtApiAsio *object = (RtApiAsio *) asioCallbackInfo->object;
   object->callbackEvent( index );
 }
 
+static void bufferSwitch1(long index, ASIOBool /*processNow*/)
+{
+	RtApiAsio *object = (RtApiAsio *)asioCallbackInfo->object;
+	object->callbackEvent(index);
+}
+static void bufferSwitch2(long index, ASIOBool /*processNow*/)
+{
+	RtApiAsio *object = (RtApiAsio *)asioCallbackInfo->object;
+	object->callbackEvent(index);
+}
+static void bufferSwitch3(long index, ASIOBool /*processNow*/)
+{
+	RtApiAsio *object = (RtApiAsio *)asioCallbackInfo->object;
+	object->callbackEvent(index);
+}
+static void bufferSwitch4(long index, ASIOBool /*processNow*/)
+{
+	RtApiAsio *object = (RtApiAsio *)asioCallbackInfo->object;
+	object->callbackEvent(index);
+}
+static void bufferSwitch5(long index, ASIOBool /*processNow*/)
+{
+	RtApiAsio *object = (RtApiAsio *)asioCallbackInfo->object;
+	object->callbackEvent(index);
+}
+static void bufferSwitch6(long index, ASIOBool /*processNow*/)
+{
+	RtApiAsio *object = (RtApiAsio *)asioCallbackInfo->object;
+	object->callbackEvent(index);
+}
+static void bufferSwitch7(long index, ASIOBool /*processNow*/)
+{
+	RtApiAsio *object = (RtApiAsio *)asioCallbackInfo->object;
+	object->callbackEvent(index);
+}
 void RtApiAsio :: saveDeviceInfo( void )
 {
   devices_.clear();
@@ -2911,7 +2947,7 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
   }
 
   char driverName[32];
-  ASIOError result = drivers.asioGetDriverName( (int) device, driverName, 32 );
+  ASIOError result = drivers[device].asioGetDriverName( (int) device, driverName, 32 );
   if ( result != ASE_OK ) {
     errorStream_ << "RtApiAsio::probeDeviceOpen: unable to get driver name (" << getAsioErrorString( result ) << ").";
     errorText_ = errorStream_.str();
@@ -2926,13 +2962,13 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
     // save the results for use by getDeviceInfo().
     this->saveDeviceInfo();
 
-    if ( !drivers.loadDriver( driverName ) ) {
+    if ( !drivers[device].loadDriver( driverName ) ) {
       errorStream_ << "RtApiAsio::probeDeviceOpen: unable to load driver (" << driverName << ").";
       errorText_ = errorStream_.str();
       return FAILURE;
     }
 
-    result = ASIOInit( &driverInfo );
+    result = ASIOInit(device, &driverInfo );
     if ( result != ASE_OK ) {
       errorStream_ << "RtApiAsio::probeDeviceOpen: error (" << getAsioErrorString( result ) << ") initializing driver (" << driverName << ").";
       errorText_ = errorStream_.str();
@@ -2948,7 +2984,7 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
 
   // Check the device channel count.
   long inputChannels, outputChannels;
-  result = ASIOGetChannels( &inputChannels, &outputChannels );
+  result = ASIOGetChannels(device, &inputChannels, &outputChannels );
   if ( result != ASE_OK ) {
     errorStream_ << "RtApiAsio::probeDeviceOpen: error (" << getAsioErrorString( result ) << ") getting channel count (" << driverName << ").";
     errorText_ = errorStream_.str();
@@ -2966,7 +3002,7 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
   stream_.channelOffset[mode] = firstChannel;
 
   // Verify the sample rate is supported.
-  result = ASIOCanSampleRate( (ASIOSampleRate) sampleRate );
+  result = ASIOCanSampleRate(device, (ASIOSampleRate) sampleRate );
   if ( result != ASE_OK ) {
     errorStream_ << "RtApiAsio::probeDeviceOpen: driver (" << driverName << ") does not support requested sample rate (" << sampleRate << ").";
     errorText_ = errorStream_.str();
@@ -2975,7 +3011,7 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
 
   // Get the current sample rate
   ASIOSampleRate currentRate;
-  result = ASIOGetSampleRate( &currentRate );
+  result = ASIOGetSampleRate(device, &currentRate );
   if ( result != ASE_OK ) {
     errorStream_ << "RtApiAsio::probeDeviceOpen: driver (" << driverName << ") error getting sample rate.";
     errorText_ = errorStream_.str();
@@ -2984,7 +3020,7 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
 
   // Set the sample rate only if necessary
   if ( currentRate != sampleRate ) {
-    result = ASIOSetSampleRate( (ASIOSampleRate) sampleRate );
+    result = ASIOSetSampleRate(device, (ASIOSampleRate) sampleRate );
     if ( result != ASE_OK ) {
       errorStream_ << "RtApiAsio::probeDeviceOpen: driver (" << driverName << ") error setting sample rate (" << sampleRate << ").";
       errorText_ = errorStream_.str();
@@ -2997,7 +3033,7 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
   channelInfo.channel = 0;
   if ( mode == OUTPUT ) channelInfo.isInput = false;
   else channelInfo.isInput = true;
-  result = ASIOGetChannelInfo( &channelInfo );
+  result = ASIOGetChannelInfo(device, &channelInfo );
   if ( result != ASE_OK ) {
     errorStream_ << "RtApiAsio::probeDeviceOpen: driver (" << driverName << ") error (" << getAsioErrorString( result ) << ") getting data format.";
     errorText_ = errorStream_.str();
@@ -3039,7 +3075,7 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
   // setting the buffer size based on the input constraints, which
   // should be ok.
   long minSize, maxSize, preferSize, granularity;
-  result = ASIOGetBufferSize( &minSize, &maxSize, &preferSize, &granularity );
+  result = ASIOGetBufferSize(device, &minSize, &maxSize, &preferSize, &granularity );
   if ( result != ASE_OK ) {
     errorStream_ << "RtApiAsio::probeDeviceOpen: driver (" << driverName << ") error (" << getAsioErrorString( result ) << ") getting buffer size.";
     errorText_ = errorStream_.str();
@@ -3131,7 +3167,7 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
   // and output separately, we'll have to dispose of previously
   // created output buffers for a duplex stream.
  // if ( mode == INPUT && stream_.mode == OUTPUT ) {
-   ASIOError err = ASIODisposeBuffers();
+   ASIOError err = ASIODisposeBuffers(device);
    if (err != ASE_OK)
 	   printf("Dispose buffer error message %i", err);
    if (err == ASE_OK)
@@ -3172,18 +3208,31 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
   stream_.callbackInfo.object = (void *) this;
 
   // Set up the ASIO callback structure and create the ASIO data buffers.
-  asioCallbacks.bufferSwitch = &bufferSwitch;
+  // we accept up to 8 devices
+  if (device <= 7) {
+	  switch (device) {
+	  case 0: asioCallbacks.bufferSwitch = &bufferSwitch0;
+	  case 1: asioCallbacks.bufferSwitch = &bufferSwitch1;
+	  case 2: asioCallbacks.bufferSwitch = &bufferSwitch2;
+	  case 3: asioCallbacks.bufferSwitch = &bufferSwitch3;
+	  case 4: asioCallbacks.bufferSwitch = &bufferSwitch4;
+	  case 5: asioCallbacks.bufferSwitch = &bufferSwitch5;
+	  case 6: asioCallbacks.bufferSwitch = &bufferSwitch6;
+	  case 7: asioCallbacks.bufferSwitch = &bufferSwitch7;
+	  }
+  }
+  
   asioCallbacks.sampleRateDidChange = &sampleRateChanged;
   asioCallbacks.asioMessage = &asioMessages;
   asioCallbacks.bufferSwitchTimeInfo = NULL;
-  result = ASIOCreateBuffers( handle->bufferInfos, nChannels, stream_.bufferSize, &asioCallbacks );
+  result = ASIOCreateBuffers(device, handle->bufferInfos, nChannels, stream_.bufferSize, &asioCallbacks );
   if ( result != ASE_OK ) {
     // Standard method failed. This can happen with strict/misbehaving drivers that return valid buffer size ranges
     // but only accept the preferred buffer size as parameter for ASIOCreateBuffers. eg. Creatives ASIO driver
     // in that case, let's be naïve and try that instead
     *bufferSize = preferSize;
     stream_.bufferSize = *bufferSize;
-    result = ASIOCreateBuffers( handle->bufferInfos, nChannels, stream_.bufferSize, &asioCallbacks );
+    result = ASIOCreateBuffers(device, handle->bufferInfos, nChannels, stream_.bufferSize, &asioCallbacks );
   }
 
   if ( result != ASE_OK ) {
@@ -3233,7 +3282,7 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
 
   // Determine device latencies
   long inputLatency, outputLatency;
-  result = ASIOGetLatencies( &inputLatency, &outputLatency );
+  result = ASIOGetLatencies(device, &inputLatency, &outputLatency );
   if ( result != ASE_OK ) {
     errorStream_ << "RtApiAsio::probeDeviceOpen: driver (" << driverName << ") error (" << getAsioErrorString( result ) << ") getting latency.";
     errorText_ = errorStream_.str();
@@ -3257,9 +3306,9 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
     // So we clean up for single channel only
 
     if ( buffersAllocated )
-      ASIODisposeBuffers();
+      ASIODisposeBuffers(device);
 
-    drivers.removeCurrentDriver();
+    drivers[device].removeCurrentDriver();
 
     if ( handle ) {
       CloseHandle( handle->condition );
@@ -3295,10 +3344,13 @@ void RtApiAsio :: closeStream()
 
   if ( stream_.state == STREAM_RUNNING ) {
     stream_.state = STREAM_STOPPED;
-    ASIOStop();
+ //   ASIOStop(stream_.device[0]);
+	ASIOStop(stream_.device[1]);
   }
-  ASIODisposeBuffers();
-  drivers.removeCurrentDriver();
+//  ASIODisposeBuffers(stream_.device[0]);
+  ASIODisposeBuffers(stream_.device[1]);
+ // drivers[stream_.device[0]].removeCurrentDriver();
+  drivers[stream_.device[1]].removeCurrentDriver();
 
   AsioHandle *handle = (AsioHandle *) stream_.apiHandle;
   if ( handle ) {
@@ -3337,11 +3389,17 @@ void RtApiAsio :: startStream()
   }
 
   AsioHandle *handle = (AsioHandle *) stream_.apiHandle;
-  ASIOError result = ASIOStart();
-  if ( result != ASE_OK ) {
-    errorStream_ << "RtApiAsio::startStream: error (" << getAsioErrorString( result ) << ") starting device.";
-    errorText_ = errorStream_.str();
-    goto unlock;
+  //ASIOError result = ASIOStart(stream_.device[0]);
+  //if ( result != ASE_OK ) {
+  //  errorStream_ << "RtApiAsio::startStream: error (" << getAsioErrorString( result ) << ") starting output device.";
+  //  errorText_ = errorStream_.str();
+  //  goto unlock;
+  //}
+  ASIOError result = ASIOStart(stream_.device[1]);
+  if (result != ASE_OK) {
+	  errorStream_ << "RtApiAsio::startStream: error (" << getAsioErrorString(result) << ") starting input device.";
+	  errorText_ = errorStream_.str();
+	  goto unlock;
   }
 
   handle->drainCounter = 0;
@@ -3376,12 +3434,17 @@ void RtApiAsio :: stopStream()
 
   stream_.state = STREAM_STOPPED;
 
-  ASIOError result = ASIOStop();
-  if ( result != ASE_OK ) {
-    errorStream_ << "RtApiAsio::stopStream: error (" << getAsioErrorString( result ) << ") stopping device.";
-    errorText_ = errorStream_.str();
-  }
+  //ASIOError result = ASIOStop(stream_.device[0]);
+  //if ( result != ASE_OK ) {
+  //  errorStream_ << "RtApiAsio::stopStream: error (" << getAsioErrorString( result ) << ") stopping input device.";
+  //  errorText_ = errorStream_.str();
+  //}
 
+  ASIOError result = ASIOStop(stream_.device[1]);
+  if (result != ASE_OK) {
+	  errorStream_ << "RtApiAsio::stopStream: error (" << getAsioErrorString(result) << ") stopping output device.";
+	  errorText_ = errorStream_.str();
+  }
   if ( result == ASE_OK ) return;
   error( RtAudioError::SYSTEM_ERROR );
 }
@@ -3567,7 +3630,7 @@ bool RtApiAsio :: callbackEvent( long bufferIndex )
   // The following call was suggested by Malte Clasen.  While the API
   // documentation indicates it should not be required, some device
   // drivers apparently do not function correctly without it.
-  ASIOOutputReady();
+  ASIOOutputReady(stream_.device[1]);
 
   RtApi::tickStreamTime();
   return SUCCESS;

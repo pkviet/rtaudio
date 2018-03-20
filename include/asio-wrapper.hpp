@@ -499,24 +499,24 @@ interface IASIO : public IUnknown
 //////////////////////////////////////////////
 // functions called in portaudio and RtAudio.cpp for instance
 ////////////////////////////////////////////////
-ASIOError ASIOStart(void); // https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln3324 http://jsasio.sourceforge.net/com/groovemanager/spi/asio/ASIOMixer.html#ASIOStart
-ASIOError ASIOStop(void); // https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln3363 http://jsasio.sourceforge.net/com/groovemanager/spi/asio/ASIOMixer.html#ASIOStop
-ASIOError ASIOExit(void); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln4112 https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln3324 http://jsasio.sourceforge.net/com/groovemanager/spi/asio/ASIOMixer.html#ASIOExit
-ASIOError ASIOOutputReady(void); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln999 
-ASIOError ASIOInit(ASIODriverInfo *info); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln971 http://jsasio.sourceforge.net/com/groovemanager/spi/asio/ASIOMixer.html#ASIOInit
-ASIOError ASIOGetChannels(long *numInputChannels, long *numOutputChannels); //https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln982
-ASIOError ASIOGetLatencies(long *inputLatency, long *outputLatency); // https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln3220
-ASIOError ASIOGetBufferSize(long *minSize, long *maxSize, long *preferredSize, long *granularity); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln990
-ASIOError ASIOCanSampleRate(ASIOSampleRate sampleRate); // https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln2826
-ASIOError ASIOGetSampleRate(ASIOSampleRate *currentRate); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln1656
-ASIOError ASIOSetSampleRate(ASIOSampleRate sampleRate); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln1977
-ASIOError ASIOGetSamplePosition(ASIOSamples *sPos, ASIOTimeStamp *tStamp); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln2888
-ASIOError ASIOGetChannelInfo(ASIOChannelInfo *info); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln1125
-ASIOError ASIOCreateBuffers(ASIOBufferInfo *bufferInfos, long numChannels,
+ASIOError ASIOStart(int index); // https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln3324 http://jsasio.sourceforge.net/com/groovemanager/spi/asio/ASIOMixer.html#ASIOStart
+ASIOError ASIOStop(int index); // https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln3363 http://jsasio.sourceforge.net/com/groovemanager/spi/asio/ASIOMixer.html#ASIOStop
+ASIOError ASIOExit(int index); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln4112 https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln3324 http://jsasio.sourceforge.net/com/groovemanager/spi/asio/ASIOMixer.html#ASIOExit
+ASIOError ASIOOutputReady(int index); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln999 
+ASIOError ASIOInit(int index, ASIODriverInfo *info); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln971 http://jsasio.sourceforge.net/com/groovemanager/spi/asio/ASIOMixer.html#ASIOInit
+ASIOError ASIOGetChannels(int index, long *numInputChannels, long *numOutputChannels); //https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln982
+ASIOError ASIOGetLatencies(int index, long *inputLatency, long *outputLatency); // https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln3220
+ASIOError ASIOGetBufferSize(int index, long *minSize, long *maxSize, long *preferredSize, long *granularity); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln990
+ASIOError ASIOCanSampleRate(int index, ASIOSampleRate sampleRate); // https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln2826
+ASIOError ASIOGetSampleRate(int index, ASIOSampleRate *currentRate); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln1656
+ASIOError ASIOSetSampleRate(int index, ASIOSampleRate sampleRate); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln1977
+ASIOError ASIOGetSamplePosition(int index, ASIOSamples *sPos, ASIOTimeStamp *tStamp); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln2888
+ASIOError ASIOGetChannelInfo(int index, ASIOChannelInfo *info); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln1125
+ASIOError ASIOCreateBuffers(int index, ASIOBufferInfo *bufferInfos, long numChannels,
 	long bufferSize, ASIOCallbacks *callbacks); //https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln3163
-ASIOError ASIODisposeBuffers(void); // https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln3122 return type guessed to e as other methods
-ASIOError ASIOControlPanel(void); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln4101
-ASIOError ASIOFuture(long selector, void *params);//https://managedbass.github.io/api/ManagedBass.Asio.AsioFuture.html
+ASIOError ASIODisposeBuffers(int index); // https://github.com/thestk/rtaudio/blob/master/RtAudio.cpp#ln3122 return type guessed to e as other methods
+ASIOError ASIOControlPanel(int index); // https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln4101
+ASIOError ASIOFuture(int index, long selector, void *params);//https://managedbass.github.io/api/ManagedBass.Asio.AsioFuture.html
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define ASIO_LITTLE_ENDIAN true /* http://www.oifii.org/ns-org/nsd/ar/cp/audio_spivsthost/vsthostsrc/AsioHost.cpp
@@ -592,7 +592,7 @@ public:
 	AsioDrivers();
 	~AsioDrivers();
 
-	bool getCurrentDriverName(char *name); // http://d.hatena.ne.jp/heisseswasser/touch/searchdiary?word=*%5BASIO%5D
+	bool getCurrentDriverName(int index, char *name); // http://d.hatena.ne.jp/heisseswasser/touch/searchdiary?word=*%5BASIO%5D
 	long getDriverNames(char **names, long maxDrivers);/* https://svn.grrrr.org/ext/tags/pd/before_convergence_to_pd_cvs/src/s_audio_asio.cpp
 													   in asio_getdevs function
 													   also https://app.assembla.com/spaces/portaudio/git/source/master/src/hostapi/asio/pa_asio.cpp#ln338 */
