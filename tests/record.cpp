@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <stdio.h>
+#include <thread>
 
 /*
 typedef char MY_TYPE;
@@ -89,21 +90,23 @@ int input( void * /*outputBuffer*/, void *inputBuffer, unsigned int nBufferFrame
 
 int main( int argc/*, char *argv[]*/ )
 {
-  unsigned int channels, fs, bufferFrames, device = 0, offset = 0;
+  unsigned int channels, fs, bufferFrames, bufferFramesbis, device = 0, devicebis, offset = 0;
   unsigned int i, j;
   double time = 2.0;
   FILE *fd;
+  std::thread t[2];
 
   // minimal command-line checking
   // if ( argc < 3 || argc > 6 ) usage();
 
   channels = 4;
-  fs = 48000;
+  fs = 44100;
   time = (double)10;
-  device = (unsigned int)1;
+  device = (unsigned int)4;
+  devicebis = (unsigned int)5;
   offset = (unsigned int)0;
 
-  RtAudio adc;
+  RtAudio adc, adcbis;
   if ( adc.getDeviceCount() < 1 ) {
     std::cout << "\nNo audio devices found!\n";
     exit( 1 );
@@ -136,21 +139,26 @@ int main( int argc/*, char *argv[]*/ )
 
   // Let RtAudio print messages to stderr.
   adc.showWarnings( true );
+  adcbis.showWarnings(true);
 
   //show info on the devices
 
   // Set our stream parameters for input only.
   bufferFrames = 512;
-  RtAudio::StreamParameters iParams;
-  if ( device == 0 )
-    iParams.deviceId = adc.getDefaultInputDevice();
-  else
-    iParams.deviceId = device;
+  RtAudio::StreamParameters iParams, iParamsbis;
+ 
+  iParams.deviceId = device;
   iParams.nChannels = channels;
   iParams.firstChannel = offset;
 
-  InputData data;
+  iParamsbis.deviceId = devicebis;
+  iParamsbis.nChannels = channels;
+  iParamsbis.firstChannel = offset;
+
+  InputData data, databis;
   data.buffer = 0;
+  databis.buffer = 0;
+
   try {
     adc.openStream( NULL, &iParams, FORMAT, fs, &bufferFrames, &input, (void *)&data );
   }
@@ -159,18 +167,38 @@ int main( int argc/*, char *argv[]*/ )
     goto cleanup;
   }
 
+  try {
+	  adcbis.openStream(NULL, &iParamsbis, FORMAT, fs, &bufferFramesbis, &input, (void *)&databis);
+  }
+  catch (RtAudioError& ebis) {
+	  std::cout << '\n' << ebis.getMessage() << '\n' << std::endl;
+	  goto cleanup;
+  }
+
   data.bufferBytes = bufferFrames * channels * sizeof( MY_TYPE );
   data.totalFrames = (unsigned long) (fs * time);
   data.frameCounter = 0;
   data.channels = channels;
-  unsigned long totalBytes;
+
+  databis.bufferBytes = bufferFramesbis * channels * sizeof(MY_TYPE);
+  databis.totalFrames = (unsigned long)(fs * time);
+  databis.frameCounter = 0;
+  databis.channels = channels;
+
+  unsigned long totalBytes, totalBytesbis;
   totalBytes = data.totalFrames * channels * sizeof( MY_TYPE );
+  totalBytesbis = databis.totalFrames * channels * sizeof(MY_TYPE);
 
   // Allocate the entire data buffer before starting stream.
   data.buffer = (MY_TYPE*) malloc( totalBytes );
   if ( data.buffer == 0 ) {
     std::cout << "Memory allocation error ... quitting!\n";
     goto cleanup;
+  }
+  databis.buffer = (MY_TYPE*)malloc(totalBytesbis);
+  if (databis.buffer == 0) {
+	  std::cout << "Memory allocation error ... quitting!\n";
+	  goto cleanup;
   }
 
   try {
@@ -181,9 +209,20 @@ int main( int argc/*, char *argv[]*/ )
     goto cleanup;
   }
 
+  try {
+	  adcbis.startStream();
+  }
+  catch (RtAudioError& e) {
+	  std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+	  goto cleanup;
+  }
+
   std::cout << "\nRecording for " << time << " seconds ... writing file 'record.raw' (buffer frames = " << bufferFrames << ")." << std::endl;
   while ( adc.isStreamRunning() ) {
     SLEEP( 100 ); // wake every 100 ms to check if we're done
+  }
+  while (adcbis.isStreamRunning()) {
+	  SLEEP(100); // wake every 100 ms to check if we're done
   }
 
   // Now write the entire data to the file.
@@ -191,9 +230,15 @@ int main( int argc/*, char *argv[]*/ )
   fwrite( data.buffer, sizeof( MY_TYPE ), data.totalFrames * channels, fd );
   fclose( fd );
 
+  fd = fopen("record2.raw", "wb");
+  fwrite(databis.buffer, sizeof(MY_TYPE), databis.totalFrames * channels, fd);
+  fclose(fd);
+
  cleanup:
   if ( adc.isStreamOpen() ) adc.closeStream();
   if ( data.buffer ) free( data.buffer );
+  if (adcbis.isStreamOpen()) adcbis.closeStream();
+  if (databis.buffer) free(databis.buffer);
 
   return 0;
 }

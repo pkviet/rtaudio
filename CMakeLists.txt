@@ -107,7 +107,8 @@ if (WIN32)
     if (AUDIO_WINDOWS_ASIO)
         list(APPEND rtaudio_SOURCES
             include/asio-wrapper.cpp
-            include/iasiothiscallresolver.cpp)
+    #        include/iasiothiscallresolver.cpp
+			)
         add_definitions(-D__WINDOWS_ASIO__)
         message(STATUS "Using Windows ASIO")
     endif (AUDIO_WINDOWS_ASIO)
